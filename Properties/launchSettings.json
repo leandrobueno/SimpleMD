@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "SimpleMD (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "SimpleMD (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
