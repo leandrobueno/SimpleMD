@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:SimpleMD"
+    xmlns:controls="using:SimpleMD.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
@@ -15,6 +16,7 @@
 
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="32"/>
             <RowDefinition Height="48"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="32"/>
@@ -25,21 +27,22 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
             <!-- App Icon and Title -->
             <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" Margin="16,0">
-                <Image Source="Assets/Square44x44Logo.targetsize-24_altform-unplated.png" 
+                <Image Source="Assets/Square44x44Logo.scale-100.png" 
                        Width="16" Height="16"
                        VerticalAlignment="Center"/>
                 <TextBlock Text="SimpleMD" 
                            Style="{StaticResource CaptionTextBlockStyle}"
                            VerticalAlignment="Center"/>
             </StackPanel>
+        </Grid>
 
-            <!-- Command Bar -->
-            <CommandBar Grid.Column="2" DefaultLabelPosition="Right" Background="Transparent">
+        <!-- Command Bar -->
+        <Border Grid.Row="1" Background="{ThemeResource LayerFillColorDefaultBrush}">
+            <CommandBar DefaultLabelPosition="Right" Background="Transparent" VerticalAlignment="Center">
                 <AppBarButton x:Name="OpenFileButton" Icon="OpenFile" Label="Open">
                     <AppBarButton.KeyboardAccelerators>
                         <KeyboardAccelerator Modifiers="Control" Key="O"/>
@@ -53,18 +56,181 @@
                 </AppBarButton>
                 <AppBarButton x:Name="ZoomInButton" Icon="ZoomIn" Label="Zoom In"/>
                 <AppBarButton x:Name="ZoomOutButton" Icon="ZoomOut" Label="Zoom Out"/>
+                <AppBarSeparator/>
+                <AppBarToggleButton x:Name="TocToggleButton" 
+                                    Label="Contents"
+                                    IsChecked="False"
+                                    Click="TocToggleButton_Click">
+                    <AppBarToggleButton.Icon>
+                        <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xE8FD;"/>
+                    </AppBarToggleButton.Icon>
+                </AppBarToggleButton>
                 <CommandBar.SecondaryCommands>
                     <AppBarButton x:Name="PrintButton" Icon="Print" Label="Print"/>
                     <AppBarButton x:Name="SaveAsHtmlButton" Icon="Save" Label="Export as HTML"/>
+                    <AppBarButton x:Name="SaveAsPdfButton" Label="Export as PDF">
+                        <AppBarButton.Icon>
+                            <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xE8A1;"/>
+                        </AppBarButton.Icon>
+                        <AppBarButton.KeyboardAccelerators>
+                            <KeyboardAccelerator Modifiers="Control,Shift" Key="P"/>
+                        </AppBarButton.KeyboardAccelerators>
+                    </AppBarButton>
                     <AppBarSeparator/>
                     <AppBarButton x:Name="SettingsButton" Icon="Setting" Label="Settings"/>
                     <AppBarButton x:Name="AboutButton" Icon="Help" Label="About"/>
                 </CommandBar.SecondaryCommands>
             </CommandBar>
-        </Grid>
+        </Border>
 
         <!-- Main Content Area -->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="TocColumn" Width="0" MinWidth="0" MaxWidth="500"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- TOC Panel -->
+            <Grid Grid.Column="0" 
+                  x:Name="TocPanel"
+                  Visibility="Collapsed"
+                  Background="{ThemeResource LayerFillColorDefaultBrush}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <!-- TOC Header -->
+                <Border Grid.Row="0" 
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        Padding="16,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <TextBlock Grid.Column="0"
+                                   Text="Contents" 
+                                   Style="{StaticResource SubtitleTextBlockStyle}"
+                                   VerticalAlignment="Center"/>
+                        
+                        <Button Grid.Column="1"
+                                x:Name="CloseTocButton"
+                                ToolTipService.ToolTip="Close"
+                                Width="32"
+                                Height="32"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Click="CloseTocButton_Click">
+                            <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" 
+                                      Glyph="&#xE711;" 
+                                      FontSize="16"/>
+                        </Button>
+                    </Grid>
+                </Border>
+                
+                <!-- TOC Tree -->
+                <ScrollViewer Grid.Row="1" 
+                              VerticalScrollBarVisibility="Auto"
+                              Padding="8,8,8,8">
+                    <TreeView x:Name="TocTreeView"
+                              SelectionMode="Single"
+                              ItemInvoked="TocTreeView_ItemInvoked">
+                        <TreeView.ItemTemplate>
+                            <DataTemplate x:DataType="local:TocItem">
+                                <TreeViewItem ItemsSource="{x:Bind Children}"
+                                              IsExpanded="True">
+                                    <TreeViewItem.Resources>
+                                        <Style x:Key="TocButtonStyle" TargetType="Button">
+                                            <Setter Property="Background" Value="Transparent"/>
+                                            <Setter Property="BorderThickness" Value="0"/>
+                                            <Setter Property="Padding" Value="4,4,8,4"/>
+                                            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Grid>
+                                                            <Rectangle x:Name="BackgroundRectangle" 
+                                                                       Fill="Transparent" 
+                                                                       RadiusX="4" 
+                                                                       RadiusY="4"/>
+                                                            <ContentPresenter x:Name="ContentPresenter"
+                                                                              Content="{TemplateBinding Content}"
+                                                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                                              Padding="{TemplateBinding Padding}"
+                                                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                                            <VisualStateManager.VisualStateGroups>
+                                                                <VisualStateGroup x:Name="CommonStates">
+                                                                    <VisualState x:Name="Normal"/>
+                                                                    <VisualState x:Name="PointerOver">
+                                                                        <VisualState.Setters>
+                                                                            <Setter Target="BackgroundRectangle.Fill" Value="{ThemeResource SubtleFillColorSecondaryBrush}"/>
+                                                                        </VisualState.Setters>
+                                                                    </VisualState>
+                                                                    <VisualState x:Name="Pressed">
+                                                                        <VisualState.Setters>
+                                                                            <Setter Target="BackgroundRectangle.Fill" Value="{ThemeResource SubtleFillColorTertiaryBrush}"/>
+                                                                        </VisualState.Setters>
+                                                                    </VisualState>
+                                                                </VisualStateGroup>
+                                                            </VisualStateManager.VisualStateGroups>
+                                                        </Grid>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </TreeViewItem.Resources>
+                                    <Grid Height="32">
+                                        <Button Style="{StaticResource TocButtonStyle}"
+                                                Click="TocItemButton_Click"
+                                                Tag="{x:Bind}">
+                                            <StackPanel Orientation="Horizontal" 
+                                                        Spacing="8">
+                                                <TextBlock Text="{x:Bind HeaderIcon}" 
+                                                           FontFamily="{StaticResource SymbolThemeFontFamily}"
+                                                           FontSize="14"
+                                                           VerticalAlignment="Center"
+                                                           Opacity="0.6"/>
+                                                <TextBlock Text="{x:Bind Title}" 
+                                                           VerticalAlignment="Center"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           ToolTipService.ToolTip="{x:Bind Title}"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
+                                </TreeViewItem>
+                            </DataTemplate>
+                        </TreeView.ItemTemplate>
+                    </TreeView>
+                </ScrollViewer>
+            </Grid>
+            
+            <!-- Grid Splitter -->
+            <controls:ResizableGrid Grid.Column="1" 
+                  x:Name="TocSplitter"
+                  Width="8"
+                  Background="Transparent"
+                  Visibility="Collapsed"
+                  Margin="-2,0,-2,0">
+                <Grid.Resources>
+                    <SolidColorBrush x:Key="SplitterHoverBrush" Color="{ThemeResource SystemAccentColor}" Opacity="0.5"/>
+                </Grid.Resources>
+                <Rectangle x:Name="SplitterLine"
+                           Fill="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+                           Width="1"
+                           HorizontalAlignment="Center"/>
+                <Rectangle x:Name="SplitterHitArea"
+                           Fill="Transparent"
+                           Width="8"/>
+            </controls:ResizableGrid>
+            
+            <!-- Main Content -->
+            <Grid Grid.Column="2">
             <!-- Loading Progress -->
             <ProgressRing x:Name="LoadingRing" 
                           IsActive="False"
@@ -109,8 +275,7 @@
                     Visibility="Collapsed"
                     Margin="0"
                     CornerRadius="0">
-                <WebView2 x:Name="MarkdownWebView"
-                          NavigationStarting="MarkdownWebView_NavigationStarting"/>
+                <WebView2 x:Name="MarkdownWebView"/>
             </Border>
 
             <!-- Drop Overlay -->
@@ -139,12 +304,15 @@
                 </Grid>
             </Border>
         </Grid>
+        </Grid>
 
         <!-- Status Bar -->
-        <Grid Grid.Row="2" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+        <Grid Grid.Row="3" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
             <Grid Margin="16,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
@@ -156,8 +324,7 @@
                            Text="No file loaded"
                            Style="{StaticResource CaptionTextBlockStyle}"
                            VerticalAlignment="Center"
-                           TextTrimming="CharacterEllipsis"
-                           ToolTipService.ToolTip="{x:Bind FilePathText.Text, Mode=OneWay}"/>
+                           TextTrimming="CharacterEllipsis"/>
 
                 <!-- Separators and Info -->
                 <TextBlock Grid.Column="1" 
@@ -182,7 +349,7 @@
                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
 
                 <!-- Zoom Level -->
-                <StackPanel Grid.Column="3" 
+                <StackPanel Grid.Column="4" 
                             Orientation="Horizontal" 
                             Spacing="4"
                             Margin="12,0,0,0"
@@ -206,7 +373,7 @@
                        CloseButtonText="Cancel"
                        DefaultButton="Primary">
             <StackPanel Spacing="16" Width="400">
-                <TextBlock Text="Appearance" Style="{StaticResource BaseTextBlockStyle}"/>
+                <TextBlock Text="Appearance" Style="{StaticResource BodyTextBlockStyle}" FontWeight="SemiBold"/>
                 <ComboBox x:Name="ThemeComboBox" 
                           Header="Theme"
                           HorizontalAlignment="Stretch">
@@ -215,7 +382,7 @@
                     <ComboBoxItem Content="Dark" Tag="Dark"/>
                 </ComboBox>
                 
-                <TextBlock Text="Editor" Style="{StaticResource BaseTextBlockStyle}" Margin="0,16,0,0"/>
+                <TextBlock Text="Editor" Style="{StaticResource BodyTextBlockStyle}" FontWeight="SemiBold" Margin="0,16,0,0"/>
                 <CheckBox x:Name="WordWrapCheckBox" 
                           Content="Enable word wrap"
                           IsChecked="True"/>
@@ -223,7 +390,7 @@
                           Content="Show line numbers in code blocks"
                           IsChecked="True"/>
                 
-                <TextBlock Text="Preview" Style="{StaticResource BaseTextBlockStyle}" Margin="0,16,0,0"/>
+                <TextBlock Text="Preview" Style="{StaticResource BodyTextBlockStyle}" FontWeight="SemiBold" Margin="0,16,0,0"/>
                 <Slider x:Name="DefaultZoomSlider"
                         Header="Default zoom level"
                         Minimum="50"
@@ -246,7 +413,7 @@
                        DefaultButton="Close">
             <StackPanel Spacing="16" Width="400">
                 <StackPanel Orientation="Horizontal" Spacing="16">
-                    <Image Source="Assets/Square44x44Logo.targetsize-24_altform-unplated.png" 
+                    <Image Source="Assets/Square44x44Logo.scale-100.png" 
                            Width="64" Height="64"/>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="SimpleMD" Style="{StaticResource SubtitleTextBlockStyle}"/>
@@ -258,6 +425,147 @@
                 </TextBlock>
                 <HyperlinkButton Content="View on GitHub" NavigateUri="https://github.com/yourusername/SimpleMD"/>
             </StackPanel>
+        </ContentDialog>
+
+        <!-- PDF Export Settings Dialog -->
+        <ContentDialog x:Name="PdfSettingsDialog"
+                       Title="PDF Export Settings"
+                       PrimaryButtonText="Export"
+                       CloseButtonText="Cancel"
+                       DefaultButton="Primary">
+            <ScrollViewer>
+                <StackPanel Spacing="16" Width="450">
+                    <!-- Page Setup -->
+                    <TextBlock Text="Page Setup" Style="{StaticResource BodyTextBlockStyle}" FontWeight="SemiBold"/>
+                    
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <ComboBox Grid.Column="0" 
+                                  x:Name="PageSizeComboBox" 
+                                  Header="Page Size"
+                                  HorizontalAlignment="Stretch"
+                                  SelectedIndex="0">
+                            <ComboBoxItem Content="Letter (8.5 × 11 in)" Tag="Letter"/>
+                            <ComboBoxItem Content="A4 (210 × 297 mm)" Tag="A4"/>
+                            <ComboBoxItem Content="Legal (8.5 × 14 in)" Tag="Legal"/>
+                            <ComboBoxItem Content="A3 (297 × 420 mm)" Tag="A3"/>
+                        </ComboBox>
+                        
+                        <ComboBox Grid.Column="1" 
+                                  x:Name="OrientationComboBox" 
+                                  Header="Orientation"
+                                  HorizontalAlignment="Stretch"
+                                  SelectedIndex="0">
+                            <ComboBoxItem Content="Portrait" Tag="Portrait"/>
+                            <ComboBoxItem Content="Landscape" Tag="Landscape"/>
+                        </ComboBox>
+                    </Grid>
+                    
+                    <!-- Margins -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <TextBlock Grid.Column="0" 
+                                   x:Name="MarginsHeaderText"
+                                   Text="Margins (inches)" 
+                                   Style="{StaticResource BodyTextBlockStyle}" 
+                                   FontWeight="SemiBold" 
+                                   Margin="0,16,0,0"
+                                   VerticalAlignment="Center"/>
+                        
+                        <ToggleSwitch Grid.Column="1" 
+                                      x:Name="MarginUnitToggle"
+                                      OnContent="cm" 
+                                      OffContent="in"
+                                      IsOn="False"
+                                      Margin="0,16,0,0"
+                                      Toggled="MarginUnitToggle_Toggled"/>
+                    </Grid>
+                    
+                    <Grid RowSpacing="12" ColumnSpacing="12">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <NumberBox Grid.Row="0" Grid.Column="0" 
+                                   x:Name="MarginTopBox" 
+                                   Header="Top"
+                                   Value="0.5"
+                                   Minimum="0"
+                                   Maximum="2"
+                                   SmallChange="0.1"
+                                   LargeChange="0.5"
+                                   SpinButtonPlacementMode="Inline"/>
+                        
+                        <NumberBox Grid.Row="0" Grid.Column="1" 
+                                   x:Name="MarginBottomBox" 
+                                   Header="Bottom"
+                                   Value="0.5"
+                                   Minimum="0"
+                                   Maximum="2"
+                                   SmallChange="0.1"
+                                   LargeChange="0.5"
+                                   SpinButtonPlacementMode="Inline"/>
+                        
+                        <NumberBox Grid.Row="1" Grid.Column="0" 
+                                   x:Name="MarginLeftBox" 
+                                   Header="Left"
+                                   Value="0.5"
+                                   Minimum="0"
+                                   Maximum="2"
+                                   SmallChange="0.1"
+                                   LargeChange="0.5"
+                                   SpinButtonPlacementMode="Inline"/>
+                        
+                        <NumberBox Grid.Row="1" Grid.Column="1" 
+                                   x:Name="MarginRightBox" 
+                                   Header="Right"
+                                   Value="0.5"
+                                   Minimum="0"
+                                   Maximum="2"
+                                   SmallChange="0.1"
+                                   LargeChange="0.5"
+                                   SpinButtonPlacementMode="Inline"/>
+                    </Grid>
+                    
+                    <!-- Options -->
+                    <TextBlock Text="Options" Style="{StaticResource BodyTextBlockStyle}" FontWeight="SemiBold" Margin="0,16,0,0"/>
+                    
+                    <CheckBox x:Name="PrintBackgroundsCheckBox" 
+                              Content="Print background colors and images"
+                              IsChecked="True"/>
+                    
+                    <CheckBox x:Name="PrintHeaderFooterCheckBox" 
+                              Content="Print headers and footers"
+                              IsChecked="False"/>
+                    
+                    <Slider x:Name="ScaleSlider"
+                            Header="Scale"
+                            Minimum="50"
+                            Maximum="150"
+                            Value="100"
+                            StepFrequency="5"
+                            TickFrequency="25"
+                            TickPlacement="Outside"
+                            HorizontalAlignment="Stretch"/>
+                    <TextBlock Style="{StaticResource CaptionTextBlockStyle}" HorizontalAlignment="Right">
+                        <Run Text="{x:Bind ScaleSlider.Value, Mode=OneWay}"/>
+                        <Run Text="%"/>
+                    </TextBlock>
+                </StackPanel>
+            </ScrollViewer>
         </ContentDialog>
     </Grid>
 </Window>

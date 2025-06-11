@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,6 +15,7 @@ using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Storage;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -27,6 +28,12 @@ namespace SimpleMD
     public partial class App : Application
     {
         private Window? _window;
+        private string? _launchFilePath;
+
+        /// <summary>
+        /// Gets the current main window.
+        /// </summary>
+        public static MainWindow? MainWindow { get; private set; }
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -43,8 +50,36 @@ namespace SimpleMD
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
+            // Check if we're being activated with a file
+            var activatedEventArgs = Microsoft.Windows.AppLifecycle.AppInstance.GetCurrent().GetActivatedEventArgs();
+
+            if (activatedEventArgs != null && activatedEventArgs.Kind == Microsoft.Windows.AppLifecycle.ExtendedActivationKind.File)
+            {
+                var fileArgs = activatedEventArgs.Data as Windows.ApplicationModel.Activation.FileActivatedEventArgs;
+                if (fileArgs?.Files.Count > 0)
+                {
+                    var file = fileArgs.Files[0] as StorageFile;
+                    _launchFilePath = file?.Path;
+                }
+            }
+
+            CreateAndActivateMainWindow();
+        }
+
+        private void CreateAndActivateMainWindow()
+        {
             _window = new MainWindow();
+            MainWindow = _window as MainWindow;
+
+            // If we have a file to open, notify the main window
+            if (!string.IsNullOrEmpty(_launchFilePath) && MainWindow != null)
+            {
+                MainWindow.SetInitialFile(_launchFilePath);
+            }
+
             _window.Activate();
         }
+
+
     }
 }
