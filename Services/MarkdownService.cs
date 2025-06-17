@@ -90,7 +90,7 @@ namespace SimpleMD.Services
                 if (!string.IsNullOrWhiteSpace(text))
                 {
                     // Try to get the ID from heading attributes if available
-                    string id = null;
+                    string? id = null;
                     var attrs = heading.TryGetAttributes();
                     if (attrs != null && !string.IsNullOrEmpty(attrs.Id))
                     {

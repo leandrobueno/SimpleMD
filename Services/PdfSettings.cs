@@ -53,13 +53,13 @@ namespace SimpleMD.Services
             var isMetricRegion = region != "US" && region != "LR" && region != "MM";
 
             if (settings.Values.TryGetValue(PageSizeKey, out var pageSize))
-                pdfSettings.PageSize = pageSize.ToString();
+                pdfSettings.PageSize = pageSize?.ToString() ?? "Letter";
             else
                 // Default to A4 for metric regions, Letter for US
                 pdfSettings.PageSize = isMetricRegion ? "A4" : "Letter";
                 
             if (settings.Values.TryGetValue(OrientationKey, out var orientation))
-                pdfSettings.Orientation = orientation.ToString();
+                pdfSettings.Orientation = orientation?.ToString() ?? "Portrait";
             if (settings.Values.TryGetValue(MarginTopKey, out var marginTop))
                 pdfSettings.MarginTop = Convert.ToDouble(marginTop);
             if (settings.Values.TryGetValue(MarginBottomKey, out var marginBottom))

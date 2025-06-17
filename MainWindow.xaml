@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:SimpleMD"
     xmlns:controls="using:SimpleMD.Controls"
+    xmlns:models="using:SimpleMD.Models"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
@@ -31,44 +32,65 @@
 
             <!-- App Icon and Title -->
             <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" Margin="16,0">
-                <Image Source="Assets/Square44x44Logo.scale-100.png" 
+                <!-- Use your modern PNG logo for better reliability -->
+                <Image Source="Assets/Square44x44Logo.scale-200.png" 
                        Width="16" Height="16"
-                       VerticalAlignment="Center"/>
+                       VerticalAlignment="Center"
+                       AutomationProperties.Name="SimpleMD Application Logo"
+                       AutomationProperties.AccessibilityView="Raw"/>
                 <TextBlock Text="SimpleMD" 
                            Style="{StaticResource CaptionTextBlockStyle}"
-                           VerticalAlignment="Center"/>
+                           VerticalAlignment="Center"
+                           AutomationProperties.AccessibilityView="Raw"/>
             </StackPanel>
         </Grid>
 
         <!-- Command Bar -->
         <Border Grid.Row="1" Background="{ThemeResource LayerFillColorDefaultBrush}">
-            <CommandBar DefaultLabelPosition="Right" Background="Transparent" VerticalAlignment="Center">
-                <AppBarButton x:Name="OpenFileButton" Icon="OpenFile" Label="Open">
+            <CommandBar DefaultLabelPosition="Right" Background="Transparent" VerticalAlignment="Center"
+                        AutomationProperties.Name="Main toolbar"
+                        AutomationProperties.LandmarkType="Navigation">
+                <AppBarButton x:Name="OpenFileButton" Icon="OpenFile" Label="Open"
+                              AutomationProperties.Name="Open file"
+                              AutomationProperties.HelpText="Open a markdown file for viewing and editing">
                     <AppBarButton.KeyboardAccelerators>
                         <KeyboardAccelerator Modifiers="Control" Key="O"/>
                     </AppBarButton.KeyboardAccelerators>
                 </AppBarButton>
                 <AppBarSeparator/>
-                <AppBarButton x:Name="RefreshButton" Icon="Refresh" Label="Refresh">
+                <AppBarButton x:Name="RefreshButton" Icon="Refresh" Label="Refresh"
+                              AutomationProperties.Name="Refresh document"
+                              AutomationProperties.HelpText="Reload the current markdown file">
                     <AppBarButton.KeyboardAccelerators>
                         <KeyboardAccelerator Key="F5"/>
                     </AppBarButton.KeyboardAccelerators>
                 </AppBarButton>
-                <AppBarButton x:Name="ZoomInButton" Icon="ZoomIn" Label="Zoom In"/>
-                <AppBarButton x:Name="ZoomOutButton" Icon="ZoomOut" Label="Zoom Out"/>
+                <AppBarButton x:Name="ZoomInButton" Icon="ZoomIn" Label="Zoom In"
+                              AutomationProperties.Name="Zoom in"
+                              AutomationProperties.HelpText="Increase the document zoom level"/>
+                <AppBarButton x:Name="ZoomOutButton" Icon="ZoomOut" Label="Zoom Out"
+                              AutomationProperties.Name="Zoom out"
+                              AutomationProperties.HelpText="Decrease the document zoom level"/>
                 <AppBarSeparator/>
                 <AppBarToggleButton x:Name="TocToggleButton" 
                                     Label="Contents"
                                     IsChecked="False"
-                                    Click="TocToggleButton_Click">
+                                    AutomationProperties.Name="Toggle table of contents"
+                                    AutomationProperties.HelpText="Show or hide the table of contents panel">
                     <AppBarToggleButton.Icon>
                         <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xE8FD;"/>
                     </AppBarToggleButton.Icon>
                 </AppBarToggleButton>
                 <CommandBar.SecondaryCommands>
-                    <AppBarButton x:Name="PrintButton" Icon="Print" Label="Print"/>
-                    <AppBarButton x:Name="SaveAsHtmlButton" Icon="Save" Label="Export as HTML"/>
-                    <AppBarButton x:Name="SaveAsPdfButton" Label="Export as PDF">
+                    <AppBarButton x:Name="PrintButton" Icon="Print" Label="Print"
+                                  AutomationProperties.Name="Print document"
+                                  AutomationProperties.HelpText="Print the current markdown document"/>
+                    <AppBarButton x:Name="SaveAsHtmlButton" Icon="Save" Label="Export as HTML"
+                                  AutomationProperties.Name="Export as HTML"
+                                  AutomationProperties.HelpText="Save the document as an HTML file"/>
+                    <AppBarButton x:Name="SaveAsPdfButton" Label="Export as PDF"
+                                  AutomationProperties.Name="Export as PDF"
+                                  AutomationProperties.HelpText="Save the document as a PDF file">
                         <AppBarButton.Icon>
                             <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" Glyph="&#xE8A1;"/>
                         </AppBarButton.Icon>
@@ -77,8 +99,12 @@
                         </AppBarButton.KeyboardAccelerators>
                     </AppBarButton>
                     <AppBarSeparator/>
-                    <AppBarButton x:Name="SettingsButton" Icon="Setting" Label="Settings"/>
-                    <AppBarButton x:Name="AboutButton" Icon="Help" Label="About"/>
+                    <AppBarButton x:Name="SettingsButton" Icon="Setting" Label="Settings"
+                                  AutomationProperties.Name="Application settings"
+                                  AutomationProperties.HelpText="Open the settings dialog"/>
+                    <AppBarButton x:Name="AboutButton" Icon="Help" Label="About"
+                                  AutomationProperties.Name="About SimpleMD"
+                                  AutomationProperties.HelpText="Show information about the application"/>
                 </CommandBar.SecondaryCommands>
             </CommandBar>
         </Border>
@@ -95,7 +121,10 @@
             <Grid Grid.Column="0" 
                   x:Name="TocPanel"
                   Visibility="Collapsed"
-                  Background="{ThemeResource LayerFillColorDefaultBrush}">
+                  Background="{ThemeResource LayerFillColorDefaultBrush}"
+                  AutomationProperties.Name="Table of contents"
+                  AutomationProperties.LandmarkType="Navigation"
+                  AutomationProperties.HelpText="Navigate through document sections and headings">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
@@ -114,7 +143,8 @@
                         <TextBlock Grid.Column="0"
                                    Text="Contents" 
                                    Style="{StaticResource SubtitleTextBlockStyle}"
-                                   VerticalAlignment="Center"/>
+                                   VerticalAlignment="Center"
+                                   AutomationProperties.HeadingLevel="Level2"/>
                         
                         <Button Grid.Column="1"
                                 x:Name="CloseTocButton"
@@ -124,7 +154,8 @@
                                 Padding="0"
                                 Background="Transparent"
                                 BorderThickness="0"
-                                Click="CloseTocButton_Click">
+                                AutomationProperties.Name="Close table of contents"
+                                AutomationProperties.HelpText="Close the table of contents panel">
                             <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" 
                                       Glyph="&#xE711;" 
                                       FontSize="16"/>
@@ -135,74 +166,32 @@
                 <!-- TOC Tree -->
                 <ScrollViewer Grid.Row="1" 
                               VerticalScrollBarVisibility="Auto"
-                              Padding="8,8,8,8">
+                              Padding="8,8,8,8"
+                              AutomationProperties.Name="Document outline">
                     <TreeView x:Name="TocTreeView"
+                              ItemsSource="{x:Bind ViewModel.TocItems, Mode=OneWay}"
                               SelectionMode="Single"
-                              ItemInvoked="TocTreeView_ItemInvoked">
+                              ItemInvoked="TocTreeView_ItemInvoked"
+                              AutomationProperties.Name="Document headings and sections">
                         <TreeView.ItemTemplate>
-                            <DataTemplate x:DataType="local:TocItem">
-                                <TreeViewItem ItemsSource="{x:Bind Children}"
-                                              IsExpanded="True">
-                                    <TreeViewItem.Resources>
-                                        <Style x:Key="TocButtonStyle" TargetType="Button">
-                                            <Setter Property="Background" Value="Transparent"/>
-                                            <Setter Property="BorderThickness" Value="0"/>
-                                            <Setter Property="Padding" Value="4,4,8,4"/>
-                                            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-                                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                            <Setter Property="Template">
-                                                <Setter.Value>
-                                                    <ControlTemplate TargetType="Button">
-                                                        <Grid>
-                                                            <Rectangle x:Name="BackgroundRectangle" 
-                                                                       Fill="Transparent" 
-                                                                       RadiusX="4" 
-                                                                       RadiusY="4"/>
-                                                            <ContentPresenter x:Name="ContentPresenter"
-                                                                              Content="{TemplateBinding Content}"
-                                                                              ContentTemplate="{TemplateBinding ContentTemplate}"
-                                                                              Padding="{TemplateBinding Padding}"
-                                                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                                                            <VisualStateManager.VisualStateGroups>
-                                                                <VisualStateGroup x:Name="CommonStates">
-                                                                    <VisualState x:Name="Normal"/>
-                                                                    <VisualState x:Name="PointerOver">
-                                                                        <VisualState.Setters>
-                                                                            <Setter Target="BackgroundRectangle.Fill" Value="{ThemeResource SubtleFillColorSecondaryBrush}"/>
-                                                                        </VisualState.Setters>
-                                                                    </VisualState>
-                                                                    <VisualState x:Name="Pressed">
-                                                                        <VisualState.Setters>
-                                                                            <Setter Target="BackgroundRectangle.Fill" Value="{ThemeResource SubtleFillColorTertiaryBrush}"/>
-                                                                        </VisualState.Setters>
-                                                                    </VisualState>
-                                                                </VisualStateGroup>
-                                                            </VisualStateManager.VisualStateGroups>
-                                                        </Grid>
-                                                    </ControlTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Style>
-                                    </TreeViewItem.Resources>
-                                    <Grid Height="32">
-                                        <Button Style="{StaticResource TocButtonStyle}"
-                                                Click="TocItemButton_Click"
-                                                Tag="{x:Bind}">
-                                            <StackPanel Orientation="Horizontal" 
-                                                        Spacing="8">
-                                                <TextBlock Text="{x:Bind HeaderIcon}" 
-                                                           FontFamily="{StaticResource SymbolThemeFontFamily}"
-                                                           FontSize="14"
-                                                           VerticalAlignment="Center"
-                                                           Opacity="0.6"/>
-                                                <TextBlock Text="{x:Bind Title}" 
-                                                           VerticalAlignment="Center"
-                                                           TextTrimming="CharacterEllipsis"
-                                                           ToolTipService.ToolTip="{x:Bind Title}"/>
-                                            </StackPanel>
-                                        </Button>
-                                    </Grid>
+                            <DataTemplate x:DataType="models:TocItem">
+                                <TreeViewItem ItemsSource="{x:Bind Children}" IsExpanded="True"
+                                              AutomationProperties.Name="{x:Bind Title}"
+                                              AutomationProperties.HelpText="Navigate to this section">
+                                    <StackPanel Orientation="Horizontal" 
+                                                Spacing="8"
+                                                Height="32">
+                                        <TextBlock Text="{x:Bind HeaderIcon}" 
+                                                   FontFamily="{StaticResource SymbolThemeFontFamily}"
+                                                   FontSize="14"
+                                                   VerticalAlignment="Center"
+                                                   Opacity="0.6"
+                                                   AutomationProperties.AccessibilityView="Raw"/>
+                                        <TextBlock Text="{x:Bind Title}" 
+                                                   VerticalAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   ToolTipService.ToolTip="{x:Bind Title}"/>
+                                    </StackPanel>
                                 </TreeViewItem>
                             </DataTemplate>
                         </TreeView.ItemTemplate>
@@ -237,36 +226,47 @@
                           Width="60"
                           Height="60"
                           HorizontalAlignment="Center"
-                          VerticalAlignment="Center"/>
+                          VerticalAlignment="Center"
+                          AutomationProperties.Name="Loading markdown content"/>
 
             <!-- Welcome Screen -->
             <Grid x:Name="WelcomePanel" 
                   HorizontalAlignment="Center" 
                   VerticalAlignment="Center"
-                  Visibility="Visible">
+                  Visibility="Visible"
+                  AutomationProperties.Name="Welcome screen"
+                  AutomationProperties.HelpText="No file is currently open. Use the Open File button to load a markdown document.">
                 <StackPanel Spacing="24" HorizontalAlignment="Center">
+                    <!-- Use FontIcon for document icon -->
                     <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" 
                               Glyph="&#xE943;" 
                               FontSize="72"
-                              Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                              Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                              AutomationProperties.Name="Document icon"
+                              AutomationProperties.AccessibilityView="Raw"/>
                     <TextBlock Text="Open a Markdown file to begin" 
                                Style="{StaticResource SubtitleTextBlockStyle}"
                                HorizontalAlignment="Center"
-                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               AutomationProperties.HeadingLevel="Level1"/>
                     <Button x:Name="OpenFileButtonLarge" 
                             HorizontalAlignment="Center"
-                            Style="{StaticResource AccentButtonStyle}">
+                            Style="{StaticResource AccentButtonStyle}"
+                            AutomationProperties.Name="Open markdown file"
+                            AutomationProperties.HelpText="Click to browse and open a markdown file for viewing and editing">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" 
                                       Glyph="&#xE838;" 
-                                      FontSize="16"/>
+                                      FontSize="16"
+                                      AutomationProperties.AccessibilityView="Raw"/>
                             <TextBlock Text="Open File"/>
                         </StackPanel>
                     </Button>
                     <TextBlock Text="or drag and drop a .md file here" 
                                Style="{StaticResource CaptionTextBlockStyle}"
                                HorizontalAlignment="Center"
-                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                               AutomationProperties.Name="Alternative: drag and drop a markdown file here"/>
                 </StackPanel>
             </Grid>
 
@@ -274,8 +274,12 @@
             <Border x:Name="WebViewBorder" 
                     Visibility="Collapsed"
                     Margin="0"
-                    CornerRadius="0">
-                <WebView2 x:Name="MarkdownWebView"/>
+                    CornerRadius="0"
+                    AutomationProperties.Name="Markdown content viewer"
+                    AutomationProperties.HelpText="Displays the rendered markdown content. Use Tab to navigate through links and elements.">
+                <WebView2 x:Name="MarkdownWebView"
+                          AutomationProperties.Name="Markdown document content"
+                          AutomationProperties.LandmarkType="Main"/>
             </Border>
 
             <!-- Drop Overlay -->
@@ -307,7 +311,8 @@
         </Grid>
 
         <!-- Status Bar -->
-        <Grid Grid.Row="3" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+        <Grid Grid.Row="3" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+              AutomationProperties.Name="Status bar">
             <Grid Margin="16,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -324,7 +329,9 @@
                            Text="No file loaded"
                            Style="{StaticResource CaptionTextBlockStyle}"
                            VerticalAlignment="Center"
-                           TextTrimming="CharacterEllipsis"/>
+                           TextTrimming="CharacterEllipsis"
+                           AutomationProperties.Name="Current file"
+                           AutomationProperties.LiveSetting="Polite"/>
 
                 <!-- Separators and Info -->
                 <TextBlock Grid.Column="1" 
@@ -332,36 +339,43 @@
                            Margin="12,0"
                            Style="{StaticResource CaptionTextBlockStyle}"
                            VerticalAlignment="Center"
-                           Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                           Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                           AutomationProperties.AccessibilityView="Raw"/>
 
                 <!-- Word Count -->
                 <TextBlock Grid.Column="2"
                            x:Name="WordCountText"
                            Text="0 words"
                            Style="{StaticResource CaptionTextBlockStyle}"
-                           VerticalAlignment="Center"/>
+                           VerticalAlignment="Center"
+                           AutomationProperties.Name="Word count"
+                           AutomationProperties.LiveSetting="Polite"/>
 
                 <TextBlock Grid.Column="3" 
                            Text="|" 
                            Margin="12,0"
                            Style="{StaticResource CaptionTextBlockStyle}"
                            VerticalAlignment="Center"
-                           Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                           Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                           AutomationProperties.AccessibilityView="Raw"/>
 
                 <!-- Zoom Level -->
                 <StackPanel Grid.Column="4" 
                             Orientation="Horizontal" 
                             Spacing="4"
                             Margin="12,0,0,0"
-                            VerticalAlignment="Center">
+                            VerticalAlignment="Center"
+                            AutomationProperties.Name="Zoom level">
                     <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" 
                               Glyph="&#xE71E;" 
                               FontSize="12"
-                              VerticalAlignment="Center"/>
+                              VerticalAlignment="Center"
+                              AutomationProperties.AccessibilityView="Raw"/>
                     <TextBlock x:Name="ZoomLevelText"
                                Text="100%"
                                Style="{StaticResource CaptionTextBlockStyle}"
-                               VerticalAlignment="Center"/>
+                               VerticalAlignment="Center"
+                               AutomationProperties.LiveSetting="Polite"/>
                 </StackPanel>
             </Grid>
         </Grid>
@@ -413,7 +427,7 @@
                        DefaultButton="Close">
             <StackPanel Spacing="16" Width="400">
                 <StackPanel Orientation="Horizontal" Spacing="16">
-                    <Image Source="Assets/Square44x44Logo.scale-100.png" 
+                    <Image Source="Assets/MarkdownViewerLogo_Modern.svg" 
                            Width="64" Height="64"/>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="SimpleMD" Style="{StaticResource SubtitleTextBlockStyle}"/>
@@ -423,7 +437,7 @@
                 <TextBlock TextWrapping="Wrap" Style="{StaticResource BodyTextBlockStyle}">
                     A clean and modern Markdown viewer built with WinUI 3 and .NET 9.
                 </TextBlock>
-                <HyperlinkButton Content="View on GitHub" NavigateUri="https://github.com/yourusername/SimpleMD"/>
+                <HyperlinkButton Content="View on GitHub" NavigateUri="https://github.com/leandrobueno/SimpleMD"/>
             </StackPanel>
         </ContentDialog>
 

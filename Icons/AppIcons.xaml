@@ -1,0 +1,10 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <!-- Note: Icon resources have been moved inline to avoid ContentPresenter issues -->
+    <!-- If you need reusable icons in the future, consider using: -->
+    <!-- - Direct Path elements -->
+    <!-- - FontIcon with Segoe MDL2 Assets glyphs -->
+    <!-- - UserControl-based icons -->
+    
+</ResourceDictionary>

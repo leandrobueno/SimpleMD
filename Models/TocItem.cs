@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 
-namespace SimpleMD
+namespace SimpleMD.Models
 {
     public class TocItem
     {
