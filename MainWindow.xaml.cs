@@ -149,7 +149,10 @@ namespace SimpleMD
             {
                 // Set background color before loading content to prevent white flash
                 await UpdateWebViewThemeAsync();
-                
+
+                // Set up virtual host mapping for local images if we have a current file
+                await SetupVirtualHostMapping();
+
                 ShowLoading(false);
                 MarkdownWebView.NavigateToString(html);
             }
@@ -352,13 +355,13 @@ namespace SimpleMD
                 var themeService = App.Current?.GetService<IThemeService>();
                 var isDarkMode = themeService?.IsDarkMode ?? false;
                 var backgroundColor = isDarkMode ? "#1e1e1e" : "#ffffff";
-                
-                MarkdownWebView.DefaultBackgroundColor = isDarkMode 
-                    ? Microsoft.UI.Colors.Black 
+
+                MarkdownWebView.DefaultBackgroundColor = isDarkMode
+                    ? Microsoft.UI.Colors.Black
                     : Microsoft.UI.Colors.White;
 
                 await MarkdownWebView.CoreWebView2.ExecuteScriptAsync($"document.body.style.zoom = '{_viewModel.ZoomLevel}%'");
-                
+
                 // Set initial background to prevent flash
                 await MarkdownWebView.CoreWebView2.ExecuteScriptAsync($"document.body.style.backgroundColor = '{backgroundColor}'");
 
@@ -373,7 +376,7 @@ namespace SimpleMD
             {
                 // Log the error but don't crash the app
                 System.Diagnostics.Debug.WriteLine($"WebView2 initialization error: {ex.Message}");
-                
+
                 // The app can still function without WebView2, albeit with limited functionality
                 // Consider showing a message to the user about degraded functionality
             }
@@ -392,6 +395,41 @@ namespace SimpleMD
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"WebMessage error: {ex.Message}");
+            }
+        }
+
+        private async Task SetupVirtualHostMapping()
+        {
+            try
+            {
+                if (MarkdownWebView?.CoreWebView2 != null && !string.IsNullOrEmpty(_viewModel.CurrentFilePath))
+                {
+                    var baseDirectory = Path.GetDirectoryName(_viewModel.CurrentFilePath);
+                    if (!string.IsNullOrEmpty(baseDirectory) && Directory.Exists(baseDirectory))
+                    {
+                        // Clear any existing virtual host mappings for our domain
+                        try
+                        {
+                            MarkdownWebView.CoreWebView2.ClearVirtualHostNameToFolderMapping("appassets.example");
+                        }
+                        catch
+                        {
+                            // Ignore errors when clearing - might not exist
+                        }
+
+                        // Set up virtual host mapping for the base directory
+                        MarkdownWebView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                            "appassets.example",
+                            baseDirectory,
+                            CoreWebView2HostResourceAccessKind.Allow);
+
+                        System.Diagnostics.Debug.WriteLine($"Set up virtual host mapping: appassets.example -> {baseDirectory}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error setting up virtual host mapping: {ex.Message}");
             }
         }
 

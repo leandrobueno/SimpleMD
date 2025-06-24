@@ -10,8 +10,9 @@ namespace SimpleMD.Services
         /// </summary>
         /// <param name="markdownContent">The markdown content to convert</param>
         /// <param name="isDarkMode">Whether to use dark mode styling</param>
+        /// <param name="baseDirectory">Base directory for resolving relative image paths</param>
         /// <returns>Complete HTML document ready for display</returns>
-        string ConvertToHtml(string markdownContent, bool isDarkMode = false);
+        string ConvertToHtml(string markdownContent, bool isDarkMode = false, string? baseDirectory = null);
 
         /// <summary>
         /// Gets the word count from markdown content

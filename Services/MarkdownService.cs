@@ -1,12 +1,11 @@
 using Markdig;
-using Markdig.Extensions.TaskLists;
 using Markdig.Extensions.AutoIdentifiers;
-using Markdig.Renderers;
 using Markdig.Renderers.Html;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -31,7 +30,7 @@ namespace SimpleMD.Services
                 .Build();
         }
 
-        public string ConvertToHtml(string markdownContent, bool isDarkMode = false)
+        public string ConvertToHtml(string markdownContent, bool isDarkMode = false, string? baseDirectory = null)
         {
             if (string.IsNullOrEmpty(markdownContent))
             {
@@ -40,6 +39,12 @@ namespace SimpleMD.Services
 
             // Convert markdown to HTML - AutoIdentifiers will add IDs
             var bodyHtml = Markdown.ToHtml(markdownContent, _pipeline);
+
+            // Resolve relative image paths if base directory is provided
+            if (!string.IsNullOrEmpty(baseDirectory))
+            {
+                bodyHtml = ResolveImagePaths(bodyHtml, baseDirectory);
+            }
 
             // Wrap in complete HTML document with styling
             var html = GetHtmlTemplate(bodyHtml, isDarkMode);
@@ -52,7 +57,7 @@ namespace SimpleMD.Services
             if (string.IsNullOrEmpty(markdownContent))
                 return 0;
 
-            // Remove markdown syntax and count words
+            // Remove Markdown syntax and count words
             var plainText = Markdown.ToPlainText(markdownContent, _pipeline);
             var words = Regex.Matches(plainText, @"\b\w+\b");
             return words.Count;
@@ -192,6 +197,37 @@ namespace SimpleMD.Services
             }
         }
 
+
+        private string ResolveImagePaths(string html, string baseDirectory)
+        {
+            // Use regex to find img tags with src attributes
+            var imgRegex = new Regex(@"<img([^>]*?)src=[""']([^""']*?)[""']([^>]*?)>", RegexOptions.IgnoreCase);
+
+            return imgRegex.Replace(html, match =>
+            {
+                var beforeSrc = match.Groups[1].Value;
+                var srcValue = match.Groups[2].Value;
+                var afterSrc = match.Groups[3].Value;
+
+                // Only process relative paths (not absolute URLs or absolute file paths)
+                if (!Uri.IsWellFormedUriString(srcValue, UriKind.Absolute) &&
+                    !Path.IsPathRooted(srcValue))
+                {
+                    // Combine with base directory
+                    var fullPath = Path.Combine(baseDirectory, srcValue);
+
+                    // Normalize the path and convert to forward slashes for web compatibility
+                    fullPath = Path.GetFullPath(fullPath).Replace('\\', '/');
+
+                    // Use https://appassets.example/ virtual host that will be mapped to local files
+                    // This is more reliable than custom schemes for WebView2
+                    var relativePath = Path.GetRelativePath(baseDirectory, fullPath).Replace('\\', '/');
+                    srcValue = $"https://appassets.example/{relativePath}";
+                }
+
+                return $"<img{beforeSrc}src=\"{srcValue}\"{afterSrc}>";
+            });
+        }
 
         private string GetHtmlTemplate(string bodyHtml, bool isDarkMode)
         {
@@ -493,6 +529,21 @@ img {
     background-color: var(--color-canvas-default);
     box-sizing: content-box;
     max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+}
+
+/* Broken image styling */
+img[alt]:after {
+    display: block;
+    content: '🖼️ ' attr(alt);
+    color: var(--color-fg-muted);
+    background-color: var(--color-canvas-subtle);
+    border: 1px dashed var(--color-border-default);
+    border-radius: 6px;
+    padding: 16px;
+    text-align: center;
+    font-style: italic;
 }
 
 /* Keyboard */

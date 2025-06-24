@@ -281,7 +281,8 @@ namespace SimpleMD.ViewModels
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
             var suggestedName = _fileService.GetFileNameWithoutExtension(CurrentFilePath ?? "document") + ".html";
             
-            var html = _markdownService.ConvertToHtml(CurrentMarkdownContent, _themeService.IsDarkMode);
+            var baseDirectory = !string.IsNullOrEmpty(CurrentFilePath) ? System.IO.Path.GetDirectoryName(CurrentFilePath) : null;
+            var html = _markdownService.ConvertToHtml(CurrentMarkdownContent, _themeService.IsDarkMode, baseDirectory);
             var savedPath = await _fileService.SaveFileAsync(hwnd, html, suggestedName);
             
             if (!string.IsNullOrEmpty(savedPath))
@@ -414,7 +415,8 @@ namespace SimpleMD.ViewModels
                 HasDocument = true;
                 
                 // Convert to HTML and notify
-                var html = _markdownService.ConvertToHtml(content, _themeService.IsDarkMode);
+                var baseDirectory = System.IO.Path.GetDirectoryName(filePath);
+                var html = _markdownService.ConvertToHtml(content, _themeService.IsDarkMode, baseDirectory);
                 HtmlContentChanged?.Invoke(this, html);
                 
                 // Set up file watcher
@@ -441,7 +443,8 @@ namespace SimpleMD.ViewModels
             if (string.IsNullOrEmpty(CurrentMarkdownContent))
                 return string.Empty;
                 
-            return _markdownService.ConvertToHtml(CurrentMarkdownContent, _themeService.IsDarkMode);
+            var baseDirectory = !string.IsNullOrEmpty(CurrentFilePath) ? System.IO.Path.GetDirectoryName(CurrentFilePath) : null;
+            return _markdownService.ConvertToHtml(CurrentMarkdownContent, _themeService.IsDarkMode, baseDirectory);
         }
         
         public void HandleWebMessage(string messageJson)
@@ -592,7 +595,8 @@ namespace SimpleMD.ViewModels
         {
             if (!string.IsNullOrEmpty(CurrentMarkdownContent))
             {
-                var html = _markdownService.ConvertToHtml(CurrentMarkdownContent, _themeService.IsDarkMode);
+                var baseDirectory = !string.IsNullOrEmpty(CurrentFilePath) ? System.IO.Path.GetDirectoryName(CurrentFilePath) : null;
+            var html = _markdownService.ConvertToHtml(CurrentMarkdownContent, _themeService.IsDarkMode, baseDirectory);
                 HtmlContentChanged?.Invoke(this, html);
             }
         }
