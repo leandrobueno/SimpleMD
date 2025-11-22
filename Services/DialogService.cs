@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -88,9 +89,10 @@ namespace SimpleMD.Services
             {
                 await dialog.ShowAsync();
             }
-            catch (Exception)
+            catch (COMException ex) when (ex.HResult == unchecked((int)0x80004005))
             {
-                // Dialog already open or other error - ignore
+                // Only suppress "Element not found" - dialog already showing
+                System.Diagnostics.Debug.WriteLine($"Dialog already showing: {ex.Message}");
             }
         }
         
@@ -121,9 +123,10 @@ namespace SimpleMD.Services
             {
                 await dialog.ShowAsync();
             }
-            catch (Exception)
+            catch (COMException ex) when (ex.HResult == unchecked((int)0x80004005))
             {
-                // Dialog already open or other error - ignore
+                // Only suppress "Element not found" - dialog already showing
+                System.Diagnostics.Debug.WriteLine($"Dialog already showing: {ex.Message}");
             }
         }
         
@@ -156,9 +159,10 @@ namespace SimpleMD.Services
                 var result = await dialog.ShowAsync();
                 return result == ContentDialogResult.Primary;
             }
-            catch (Exception)
+            catch (COMException ex) when (ex.HResult == unchecked((int)0x80004005))
             {
-                // Dialog already open or other error
+                // Only suppress "Element not found" - dialog already showing
+                System.Diagnostics.Debug.WriteLine($"Dialog already showing: {ex.Message}");
                 return false;
             }
         }

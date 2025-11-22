@@ -29,6 +29,10 @@ namespace SimpleMD.Models
 
         public void AddFile(string filePath)
         {
+            // Validate file exists before adding
+            if (!System.IO.File.Exists(filePath))
+                return;
+
             var fileName = System.IO.Path.GetFileName(filePath);
 
             // Remove if already exists

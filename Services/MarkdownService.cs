@@ -252,6 +252,7 @@ namespace SimpleMD.Services
     <script src='https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js'></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js'></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-powershell.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js'></script>
 </head>
 <body>
     <article class='markdown-body'>
@@ -273,6 +274,17 @@ namespace SimpleMD.Services
 
         // Syntax highlighting
         Prism.highlightAll();
+
+        // Initialize Mermaid diagrams
+        // Note: Each NavigateToString creates a fresh document, so we initialize on every load
+        if (typeof mermaid !== 'undefined') {{
+            mermaid.initialize({{
+                startOnLoad: true,
+                theme: '{theme}',
+                securityLevel: 'loose',
+                fontFamily: '-apple-system, BlinkMacSystemFont, ""Segoe UI"", ""Noto Sans"", Helvetica, Arial, sans-serif'
+            }});
+        }}
 
         // Handle checkbox clicks in task lists
         document.querySelectorAll('input[type=""checkbox""]').forEach(checkbox => {{
@@ -600,6 +612,18 @@ details[open] summary {
     background-color: var(--color-danger-subtle);
 }
 
+/* Mermaid diagrams */
+.mermaid {
+    display: flex;
+    justify-content: center;
+    margin: 16px 0;
+}
+
+.mermaid svg {
+    max-width: 100%;
+    height: auto;
+}
+
 /* Print styles */
 @media print {
     body {
@@ -636,6 +660,15 @@ details[open] summary {
     img {
         max-width: 100% !important;
         page-break-inside: avoid;
+    }
+
+    /* Mermaid diagrams in print */
+    .mermaid {
+        page-break-inside: avoid;
+    }
+
+    .mermaid svg {
+        max-width: 100% !important;
     }
 }";
         }

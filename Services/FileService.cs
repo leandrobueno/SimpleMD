@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.Storage.Pickers;
@@ -12,8 +13,8 @@ namespace SimpleMD.Services
     {
         Task<string?> OpenFileAsync(IntPtr windowHandle);
         Task<string?> SaveFileAsync(IntPtr windowHandle, string content, string? suggestedFileName = null);
-        Task<string> ReadFileAsync(string filePath);
-        Task WriteFileAsync(string filePath, string content);
+        Task<string> ReadFileAsync(string filePath, CancellationToken cancellationToken = default);
+        Task WriteFileAsync(string filePath, string content, CancellationToken cancellationToken = default);
         bool IsMarkdownFile(string filePath);
         string GetFileNameWithoutExtension(string filePath);
         string GetFileName(string filePath);
@@ -71,16 +72,21 @@ namespace SimpleMD.Services
             return null;
         }
         
-        public async Task<string> ReadFileAsync(string filePath)
+        public async Task<string> ReadFileAsync(string filePath, CancellationToken cancellationToken = default)
         {
-            if (!File.Exists(filePath))
-            {
-                throw new FileNotFoundException($"File not found: {filePath}");
-            }
-            
             try
             {
-                return await File.ReadAllTextAsync(filePath);
+                // Use Windows.Storage API for better permission handling in WinUI3
+                var file = await StorageFile.GetFileFromPathAsync(filePath);
+
+                // Check cancellation before reading
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return await FileIO.ReadTextAsync(file);
+            }
+            catch (FileNotFoundException)
+            {
+                throw new FileNotFoundException($"File not found: {filePath}");
             }
             catch (UnauthorizedAccessException)
             {
@@ -92,11 +98,16 @@ namespace SimpleMD.Services
             }
         }
         
-        public async Task WriteFileAsync(string filePath, string content)
+        public async Task WriteFileAsync(string filePath, string content, CancellationToken cancellationToken = default)
         {
             try
             {
-                await File.WriteAllTextAsync(filePath, content);
+                // Check cancellation before writing
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Use Windows.Storage API for better permission handling in WinUI3
+                var file = await StorageFile.GetFileFromPathAsync(filePath);
+                await FileIO.WriteTextAsync(file, content);
             }
             catch (UnauthorizedAccessException)
             {

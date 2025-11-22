@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
@@ -25,8 +26,10 @@ namespace SimpleMD.ViewModels
         private readonly IDialogService _dialogService;
         private readonly RecentFilesManager _recentFilesManager;
         private readonly AppSettings _appSettings;
-        
+
         private FileSystemWatcher? _fileWatcher;
+        private CancellationTokenSource? _fileWatcherCts;
+        private CancellationTokenSource? _loadFileCts;
         private string? _currentFilePath;
         private string? _currentMarkdownContent;
         private string _windowTitle = "SimpleMD - Markdown Viewer";
@@ -385,13 +388,23 @@ namespace SimpleMD.ViewModels
         {
             if (string.IsNullOrEmpty(filePath))
                 return;
-                
+
+            // Cancel previous load operation
+            _loadFileCts?.Cancel();
+            _loadFileCts = new CancellationTokenSource();
+            var cancellationToken = _loadFileCts.Token;
+
             try
             {
                 IsLoading = true;
-                
-                // Read file
-                var content = await _fileService.ReadFileAsync(filePath);
+
+                // Read file with cancellation support
+                var content = await _fileService.ReadFileAsync(filePath, cancellationToken);
+
+                // Check if cancelled after async operation
+                if (cancellationToken.IsCancellationRequested)
+                    return;
+
                 CurrentMarkdownContent = content;
                 CurrentFilePath = filePath;
                 
@@ -421,6 +434,11 @@ namespace SimpleMD.ViewModels
                 
                 // Set up file watcher
                 SetupFileWatcher(filePath);
+            }
+            catch (TaskCanceledException)
+            {
+                // Load was cancelled, this is expected
+                StatusText = "Load cancelled";
             }
             catch (Exception ex)
             {
@@ -580,14 +598,30 @@ namespace SimpleMD.ViewModels
         
         private async void OnFileChanged(object sender, FileSystemEventArgs e)
         {
-            await Task.Delay(100); // Debounce
-            
-            if (!string.IsNullOrEmpty(CurrentFilePath) && App.MainWindow?.DispatcherQueue != null)
+            // Cancel any pending reload
+            _fileWatcherCts?.Cancel();
+            _fileWatcherCts = new CancellationTokenSource();
+            var token = _fileWatcherCts.Token;
+
+            try
             {
-                await App.MainWindow.DispatcherQueue.EnqueueAsync(async () =>
+                // Debounce with cancellation support
+                await Task.Delay(100, token);
+
+                if (!token.IsCancellationRequested && !string.IsNullOrEmpty(CurrentFilePath) && App.MainWindow?.DispatcherQueue != null)
                 {
-                    await LoadFileAsync(CurrentFilePath);
-                });
+                    await App.MainWindow.DispatcherQueue.EnqueueAsync(async () =>
+                    {
+                        if (!token.IsCancellationRequested)
+                        {
+                            await LoadFileAsync(CurrentFilePath);
+                        }
+                    });
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                // Expected when debouncing is cancelled
             }
         }
         
@@ -630,12 +664,20 @@ namespace SimpleMD.ViewModels
         {
             _fileWatcher?.Dispose();
             _fileWatcher = null;
-            
+
+            _fileWatcherCts?.Cancel();
+            _fileWatcherCts?.Dispose();
+            _fileWatcherCts = null;
+
+            _loadFileCts?.Cancel();
+            _loadFileCts?.Dispose();
+            _loadFileCts = null;
+
             if (_themeService != null)
             {
                 _themeService.ThemeChanged -= OnThemeChanged;
             }
-            
+
             GC.SuppressFinalize(this);
         }
         

@@ -63,44 +63,117 @@ namespace SimpleMD.Models
         
         private void Load()
         {
-            if (_localSettings.Values.TryGetValue(ThemeKey, out var theme) && 
+            if (_localSettings.Values.TryGetValue(ThemeKey, out var theme) &&
                 Enum.TryParse<ElementTheme>(theme.ToString(), out var themeValue))
             {
                 Theme = themeValue;
             }
-            
+
             if (_localSettings.Values.TryGetValue(DefaultZoomKey, out var zoom))
-                DefaultZoom = Convert.ToDouble(zoom);
-                
+            {
+                try
+                {
+                    DefaultZoom = Convert.ToDouble(zoom);
+                    // Validate range
+                    DefaultZoom = Math.Max(50, Math.Min(200, DefaultZoom));
+                }
+                catch
+                {
+                    DefaultZoom = 100.0; // Use default on error
+                }
+            }
+
             if (_localSettings.Values.TryGetValue(WordWrapKey, out var wordWrap))
-                WordWrap = Convert.ToBoolean(wordWrap);
-                
+            {
+                try { WordWrap = Convert.ToBoolean(wordWrap); }
+                catch { WordWrap = true; }
+            }
+
             if (_localSettings.Values.TryGetValue(ShowLineNumbersKey, out var showLineNumbers))
-                ShowLineNumbers = Convert.ToBoolean(showLineNumbers);
-                
+            {
+                try { ShowLineNumbers = Convert.ToBoolean(showLineNumbers); }
+                catch { ShowLineNumbers = true; }
+            }
+
             if (_localSettings.Values.TryGetValue(AutoSaveKey, out var autoSave))
-                AutoSave = Convert.ToBoolean(autoSave);
-                
+            {
+                try { AutoSave = Convert.ToBoolean(autoSave); }
+                catch { AutoSave = false; }
+            }
+
             if (_localSettings.Values.TryGetValue(AutoSaveIntervalKey, out var autoSaveInterval))
-                AutoSaveInterval = Convert.ToInt32(autoSaveInterval);
-                
+            {
+                try
+                {
+                    AutoSaveInterval = Convert.ToInt32(autoSaveInterval);
+                    // Validate range (1-60 minutes)
+                    AutoSaveInterval = Math.Max(1, Math.Min(60, AutoSaveInterval));
+                }
+                catch
+                {
+                    AutoSaveInterval = 5;
+                }
+            }
+
             if (_localSettings.Values.TryGetValue(LastWindowWidthKey, out var width))
-                LastWindowWidth = Convert.ToDouble(width);
-                
+            {
+                try
+                {
+                    LastWindowWidth = Convert.ToDouble(width);
+                    // Validate minimum size
+                    LastWindowWidth = Math.Max(400, LastWindowWidth);
+                }
+                catch
+                {
+                    LastWindowWidth = 1200;
+                }
+            }
+
             if (_localSettings.Values.TryGetValue(LastWindowHeightKey, out var height))
-                LastWindowHeight = Convert.ToDouble(height);
-                
+            {
+                try
+                {
+                    LastWindowHeight = Convert.ToDouble(height);
+                    // Validate minimum size
+                    LastWindowHeight = Math.Max(300, LastWindowHeight);
+                }
+                catch
+                {
+                    LastWindowHeight = 800;
+                }
+            }
+
             if (_localSettings.Values.TryGetValue(IsMaximizedKey, out var isMaximized))
-                IsMaximized = Convert.ToBoolean(isMaximized);
-                
+            {
+                try { IsMaximized = Convert.ToBoolean(isMaximized); }
+                catch { IsMaximized = false; }
+            }
+
             if (_localSettings.Values.TryGetValue(ShowStatusBarKey, out var showStatusBar))
-                ShowStatusBar = Convert.ToBoolean(showStatusBar);
-                
+            {
+                try { ShowStatusBar = Convert.ToBoolean(showStatusBar); }
+                catch { ShowStatusBar = true; }
+            }
+
             if (_localSettings.Values.TryGetValue(ShowTocByDefaultKey, out var showToc))
-                ShowTocByDefault = Convert.ToBoolean(showToc);
-                
+            {
+                try { ShowTocByDefault = Convert.ToBoolean(showToc); }
+                catch { ShowTocByDefault = false; }
+            }
+
             if (_localSettings.Values.TryGetValue(TocWidthKey, out var tocWidth))
-                TocWidth = Convert.ToDouble(tocWidth);
+            {
+                try
+                {
+                    TocWidth = Convert.ToDouble(tocWidth);
+                    // Validate range
+                    TocWidth = Math.Max(200, Math.Min(500, TocWidth));
+                }
+                catch
+                {
+                    TocWidth = 280;
+                }
+            }
         }
     }
 }

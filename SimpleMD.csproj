@@ -23,6 +23,9 @@
     <DebugSymbols>false</DebugSymbols>
     <DefineConstants>RELEASE</DefineConstants>
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="nul" />
+  </ItemGroup>
 
   <ItemGroup>
     <Manifest Include="$(ApplicationManifest)" />
@@ -37,11 +40,11 @@
     <ProjectCapability Include="Msix" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.4188" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.241114003" />
-    <PackageReference Include="Markdig" Version="0.38.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7175" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.251106002" />
+    <PackageReference Include="Markdig" Version="0.43.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
   </ItemGroup>
 
   <!--
@@ -69,6 +72,8 @@
     <GenerateTestArtifacts>True</GenerateTestArtifacts>
     <AppxBundle>Never</AppxBundle>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+    <GenerateTemporaryStoreCertificate>True</GenerateTemporaryStoreCertificate>
+    <PackageCertificateThumbprint>EB179E3133A2DCC1B7F6ED2EB371F19F77902AB0</PackageCertificateThumbprint>
     <PackageCertificateKeyFile>SimpleMD_TemporaryKey.pfx</PackageCertificateKeyFile>
   </PropertyGroup>
 </Project>

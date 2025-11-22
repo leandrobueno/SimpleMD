@@ -53,30 +53,95 @@ namespace SimpleMD.Services
             var isMetricRegion = region != "US" && region != "LR" && region != "MM";
 
             if (settings.Values.TryGetValue(PageSizeKey, out var pageSize))
-                pdfSettings.PageSize = pageSize?.ToString() ?? "Letter";
+            {
+                var pageSizeStr = pageSize?.ToString() ?? "Letter";
+                // Validate page size
+                if (pageSizeStr is "Letter" or "A4" or "Legal" or "A3")
+                    pdfSettings.PageSize = pageSizeStr;
+                else
+                    pdfSettings.PageSize = isMetricRegion ? "A4" : "Letter";
+            }
             else
+            {
                 // Default to A4 for metric regions, Letter for US
                 pdfSettings.PageSize = isMetricRegion ? "A4" : "Letter";
-                
+            }
+
             if (settings.Values.TryGetValue(OrientationKey, out var orientation))
-                pdfSettings.Orientation = orientation?.ToString() ?? "Portrait";
+            {
+                var orientationStr = orientation?.ToString() ?? "Portrait";
+                // Validate orientation
+                pdfSettings.Orientation = orientationStr is "Portrait" or "Landscape" ? orientationStr : "Portrait";
+            }
+
             if (settings.Values.TryGetValue(MarginTopKey, out var marginTop))
-                pdfSettings.MarginTop = Convert.ToDouble(marginTop);
+            {
+                try
+                {
+                    pdfSettings.MarginTop = Convert.ToDouble(marginTop);
+                    // Validate range (0-5 inches)
+                    pdfSettings.MarginTop = Math.Max(0, Math.Min(5, pdfSettings.MarginTop));
+                }
+                catch { pdfSettings.MarginTop = 0.5; }
+            }
+
             if (settings.Values.TryGetValue(MarginBottomKey, out var marginBottom))
-                pdfSettings.MarginBottom = Convert.ToDouble(marginBottom);
+            {
+                try
+                {
+                    pdfSettings.MarginBottom = Convert.ToDouble(marginBottom);
+                    pdfSettings.MarginBottom = Math.Max(0, Math.Min(5, pdfSettings.MarginBottom));
+                }
+                catch { pdfSettings.MarginBottom = 0.5; }
+            }
+
             if (settings.Values.TryGetValue(MarginLeftKey, out var marginLeft))
-                pdfSettings.MarginLeft = Convert.ToDouble(marginLeft);
+            {
+                try
+                {
+                    pdfSettings.MarginLeft = Convert.ToDouble(marginLeft);
+                    pdfSettings.MarginLeft = Math.Max(0, Math.Min(5, pdfSettings.MarginLeft));
+                }
+                catch { pdfSettings.MarginLeft = 0.5; }
+            }
+
             if (settings.Values.TryGetValue(MarginRightKey, out var marginRight))
-                pdfSettings.MarginRight = Convert.ToDouble(marginRight);
+            {
+                try
+                {
+                    pdfSettings.MarginRight = Convert.ToDouble(marginRight);
+                    pdfSettings.MarginRight = Math.Max(0, Math.Min(5, pdfSettings.MarginRight));
+                }
+                catch { pdfSettings.MarginRight = 0.5; }
+            }
+
             if (settings.Values.TryGetValue(PrintBackgroundsKey, out var printBackgrounds))
-                pdfSettings.PrintBackgrounds = Convert.ToBoolean(printBackgrounds);
+            {
+                try { pdfSettings.PrintBackgrounds = Convert.ToBoolean(printBackgrounds); }
+                catch { pdfSettings.PrintBackgrounds = true; }
+            }
+
             if (settings.Values.TryGetValue(PrintHeaderFooterKey, out var printHeaderFooter))
-                pdfSettings.PrintHeaderFooter = Convert.ToBoolean(printHeaderFooter);
+            {
+                try { pdfSettings.PrintHeaderFooter = Convert.ToBoolean(printHeaderFooter); }
+                catch { pdfSettings.PrintHeaderFooter = false; }
+            }
+
             if (settings.Values.TryGetValue(ScaleKey, out var scale))
-                pdfSettings.Scale = Convert.ToDouble(scale);
+            {
+                try
+                {
+                    pdfSettings.Scale = Convert.ToDouble(scale);
+                    // Validate range (10-500%)
+                    pdfSettings.Scale = Math.Max(10, Math.Min(500, pdfSettings.Scale));
+                }
+                catch { pdfSettings.Scale = 100; }
+            }
+
             if (settings.Values.TryGetValue(MarginUnitKey, out var useMetric))
             {
-                pdfSettings.UseMetricUnits = Convert.ToBoolean(useMetric);
+                try { pdfSettings.UseMetricUnits = Convert.ToBoolean(useMetric); }
+                catch { pdfSettings.UseMetricUnits = isMetricRegion; }
             }
             else
             {

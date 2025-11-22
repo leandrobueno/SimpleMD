@@ -40,7 +40,8 @@ namespace SimpleMD
     {
         private readonly MainViewModel _viewModel;
         private readonly IDialogService _dialogService;
-        
+        private string? _lastMappedDirectory;
+
         public MainViewModel ViewModel => _viewModel;
 
         public MainWindow(MainViewModel viewModel, IDialogService dialogService)
@@ -405,6 +406,11 @@ namespace SimpleMD
                 if (MarkdownWebView?.CoreWebView2 != null && !string.IsNullOrEmpty(_viewModel.CurrentFilePath))
                 {
                     var baseDirectory = Path.GetDirectoryName(_viewModel.CurrentFilePath);
+
+                    // Only remap if directory changed
+                    if (baseDirectory == _lastMappedDirectory)
+                        return;
+
                     if (!string.IsNullOrEmpty(baseDirectory) && Directory.Exists(baseDirectory))
                     {
                         // Clear any existing virtual host mappings for our domain
@@ -423,6 +429,7 @@ namespace SimpleMD
                             baseDirectory,
                             CoreWebView2HostResourceAccessKind.Allow);
 
+                        _lastMappedDirectory = baseDirectory;
                         System.Diagnostics.Debug.WriteLine($"Set up virtual host mapping: appassets.example -> {baseDirectory}");
                     }
                 }

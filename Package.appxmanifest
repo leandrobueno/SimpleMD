@@ -10,7 +10,7 @@
 	<Identity
 	  Name="8942leandrobueno.SimpleMD"
 	  Publisher="CN=F8103F12-3F7E-4C18-9651-4AA115E5A6F5"
-	  Version="1.0.2.0" />
+	  Version="1.0.3.0" />
 
 	<mp:PhoneIdentity PhoneProductId="7dbe65a6-f923-4f9f-82d0-72fa3e9d2a4c" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
